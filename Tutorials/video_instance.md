@@ -91,6 +91,81 @@ We can perform instance segmentation with object detection by setting the parame
 
 
 
+## Extraction of objects in videos
+
+PixelLib supports the extraction of objects in videos and camera feeds.
+
+```python
+import pixellib
+from pixellib.instance import instance_segmentation
+
+segment_video = instance_segmentation()
+segment_video.load_model("mask_rcnn_coco.h5")
+segment_video.process_video("sample.mp4", show_bboxes=True,  extract_segmented_objects=True,
+save_extracted_objects=True, frames_per_second= 5,  output_video_name="output.mp4")
+```
+
+```python
+segment_video.process_video("sample.mp4", show_bboxes=True,  extract_segmented_objects=True,save_extracted_objects=True, frames_per_second= 5,  output_video_name="output.mp4")
+```
+
+It still the same code except we  introduced new parameters in the *process_video* which are:
+
+**extract_segmented_objects**: this is the parameter that tells the function to extract the objects segmented in the image. It is set to true.
+
+**save_extracted_objects**: this is an optional parameter for saving the extracted segmented objects.
+
+## Extracted objects from the video
+<table>
+  <tr>
+    <td><img src="Images/v1.jpg"></td>
+    <td><img src="Images/v2.jpg"></td>
+    <td><img src="Images/v3.jpg" ></td>
+  </tr>
+ </table>
+
+
+## Segmentation of  Specific Classes in Videos
+
+The pre-trained coco model used detects 80 classes of objects. PixelLib has made it possible to filter out unused detections and detect the classes you want.
+
+``` python
+target_classes = segment_video.select_target_classes(person=True)
+segment_video.process_video("sample.mp4", show_bboxes=True, segment_target_classes= target_classes, extract_segmented_objects=True,save_extracted_objects=True, frames_per_second= 5,  output_video_name="output.mp4")
+```
+
+[![alv1](Images/person.png)](https://www.youtube.com/watch?v=WFivw1yTYfE&list=PLtFkVrcr8LqNgbwdOb6of5X19ytm4ycHC&index=21) <br> <br>
+
+
+The target class for detection is set to person and we were able to segment only the people in the video. <br><br>
+
+``` python
+target_classes = segment_video.select_target_classes(car = True)
+segment_video.process_video("sample.mp4", show_bboxes=True, segment_target_classes= target_classes, extract_segmented_objects=True,save_extracted_objects=True, frames_per_second= 5,  output_video_name="output.mp4")
+```
+
+[![alv2](Images/car.png)](https://www.youtube.com/watch?v=i9VX4r-dboM&list=PLtFkVrcr8LqNgbwdOb6of5X19ytm4ycHC&index=20) <br> <br>
+
+The target class for detection is set to car and we were able to segment only the cars in the video.
+
+
+## Full code for filtering classes and object Extraction
+
+``` python
+import pixellib
+from pixellib.instance import instance_segmentation
+
+
+segment_video = instance_segmentation()
+segment_video.load_model("mask_rcnn_coco.h5")
+target_classes = segment_video.select_target_classes(person=True)
+segment_video.process_video("sample.mp4", show_bboxes=True, segment_target_classes= target_classes, extract_segmented_objects=True,
+save_extracted_objects=True, frames_per_second= 5,  output_video_name="output.mp4")
+```
+
+
+
+
 # Instance Segmentation of Live Camera.
 
 We can use the same model to perform semantic segmentation on camera. This can be done by few modifications to the code used to process video file.
@@ -135,6 +210,47 @@ A demo by me showing the output of pixelLib's instance segmentation on camera's 
 
 [![alt_myvid3](Images/cam_ins.png)](https://www.youtube.com/watch?v=HD1m-g7cOKw)
 
+
+## Detection of Target Classes in Live Camera Feeds
+
+This is the modified code below to filter unused detections and detect a target class in a live camera feed.
+
+```python
+
+  
+  import pixellib
+  from pixellib.instance import instance_segmentation
+  import cv2
+
+
+  capture = cv2.VideoCapture(0)
+
+  segment_video = instance_segmentation()
+  segment_video.load_model("mask_rcnn_coco.h5")
+  target_classes = segment_video.select_target_classes(person=True)
+  segment_video.process_camera(capture, segment_target_classes=target_classes,  frames_per_second= 10, output_video_name="output_video.mp4", show_frames= True,frame_name= "frame")
+```
+
+## Full code for Filtering classes and object Extraction in Camera feeds
+
+```python
+
+  import pixellib
+  from pixellib.instance import instance_segmentation
+  import cv2
+
+
+  capture = cv2.VideoCapture(0)
+
+  segment_video = instance_segmentation()
+  segment_video.load_model("mask_rcnn_coco.h5")
+  target_classes = segment_video.select_target_classes(person=True)
+  segment_video.process_camera(capture, segment_target_classes=target_classes,  frames_per_second= 10, extract_segmented_objects=True,
+  save_extracted_objects=True,output_video_name="output_video.mp4", show_frames= True,frame_name= "frame")
+
+```
+
+
 ## Speed Adjustments for Faster Inference
 PixelLib now supports the ability to adjust the speed of detection according to a user's needs. The inference speed with a minimal reduction in the accuracy of detection. There are three main parameters that control the speed of detection.
 
@@ -143,7 +259,7 @@ PixelLib now supports the ability to adjust the speed of detection according to 
 **rapid**
 
 By default the detection speed is about 1 second for a processing a single image using Nvidia GeForce 1650.
-**Using Average Detection   Mode**
+**Using Average Detection Mode**
 ```python
   import pixellib
   from pixellib.instance import instance_segmentation
