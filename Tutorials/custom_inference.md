@@ -88,9 +88,116 @@ The custom model is loaded and we called the function to segment the image.
 
 *WOW! We have successfully trained a custom model for performing instance segmentation and object detection on butterflies and squirrels.*
 
+## Extraction of Segmented Objects
 
 
-Video segmentation with a custom model.
+PixelLib now makes it possible to extract each of the segmented objects in an image and save each of the object extracted as a separate image. This is the modified code below;
+
+
+``` python
+
+import pixellib
+from pixellib.instance import custom_segmentation
+
+segment_image = custom_segmentation()
+segment_image.inferConfig(num_classes= 2, class_names= ["BG", "butterfly", "squirrel"])
+segment_image.load_model("mask_rcnn_model/Nature_model_resnet101.h5")
+segment_image.segmentImage("sample2.jpg", show_bboxes=True, output_image_name="output.jpg",
+extract_segmented_objects= True, save_extracted_objects=True) 
+```
+We introduced new parameters in the *segmentImage* function which are:
+
+**extract_segmented_objects:** This parameter handles the extraction of each of the segmented object in the image. <br>
+**save_extracted_objects:** This parameter saves each of the extracted object as a separate image.Each of the object extracted in the image would be save with the name *segmented_object* with the corresponding index number such as *segmented_object_1*.  
+
+
+These are the objects extracted from the image above. 
+
+<table>
+  <tr>
+    <td><img src="Images/s1.jpg"></td>
+    <td><img src="Images/s2.jpg"></td>
+    <td><img src="Images/s3.jpg" ></td>
+  </tr>
+ </table>
+
+
+**Specialised uses of PixelLib may require you to return the array of the segmentation's output.**
+
+**Obtain the following arrays**:
+
+-Detected Objects' arrays
+
+-Objects' corresponding class_ids' arrays
+
+-Segmentation masks' arrays
+
+-Output's array
+
+By using this code
+
+``` python
+
+  segmask, output = segment_image.segmentImage()
+
+```
+
+
+* You can test the code for obtaining arrays and print out the shape of the output by modifying the instance segmentation code below.
+
+``` python
+
+  import pixellib
+  from pixellib.instance import custom_segmentation
+
+  segment_image = custom_segmentation()
+  segment_image.inferConfig(num_classes= 2, class_names= ["BG", "butterfly", "squirrel"])
+  segment_image.load_model("mask_rcnn_model/Nature_model_resnet101.h5")
+  segmask, output = segment_image.segmentImage("sample2.jpg")
+  cv2.imwrite("img.jpg", output)
+  print(output.shape)
+```
+
+Obtain arrays of segmentation with bounding boxes by including the parameter **show_bboxes**.
+
+```python
+
+  segmask, output = segment_image.segmentImage(show_bboxes = True)
+
+```
+
+
+* Full code
+
+```python
+
+  import pixellib
+  from pixellib.instance import custom_segmentation
+
+  segment_image = custom_segmentation()
+  segment_image.inferConfig(num_classes= 2, class_names= ["BG", "butterfly", "squirrel"])
+  segment_image.load_model("mask_rcnn_model/Nature_model_resnet101.h5")
+  segmask, output = segment_image.segmentImage("sample2.jpg", show_bboxes= True)
+  cv2.imwrite("img.jpg", output)
+  print(output.shape)
+
+``` 
+
+**Note:**
+Access mask's values  using **segmask['masks']**, bounding box coordinates using **segmask['rois']**, class ids using 
+**segmask['class_ids']**.  
+
+``` python
+segmask, output = segment_image.segmentImage(show_bboxes = True, extract_segmented_objects= True )
+```
+Access the value of the extracted and croped segmented object using **segmask['extracted_objects']**
+
+
+
+
+
+
+# Video segmentation with a custom model.
 
 *sample_video1*
 
@@ -134,6 +241,28 @@ A sample of another segmented video with our custom model.
 [![alt_vid3](Images/sq_vid.png)](https://www.youtube.com/watch?v=VUnI9hefAQQ&t=2s)
 
 
+## Extraction of Segmented Objects in Videos
+
+```python
+segment_video.process_video("sample.mp4", show_bboxes=True,  extract_segmented_objects=True,save_extracted_objects=True, frames_per_second= 5,  output_video_name="output.mp4")
+```
+
+It still the same code except we  introduced new parameters in the *process_video* which are:
+
+**extract_segmented_objects**: this is the parameter that tells the function to extract the objects segmented in the image. It is set to true.
+
+**save_extracted_objects**: this is an optional parameter for saving the extracted segmented objects.
+
+## Extracted objects from the video
+<table>
+  <tr>
+    <td><img src="Images/b1.jpg"></td>
+    <td><img src="Images/b2.jpg"></td>
+  </tr>
+ </table>
+
+
+
 
 You can perform live camera segmentation with your custom model making use of this code:
 
@@ -159,6 +288,21 @@ You will replace the process_video funtion with process_camera function.In the f
 
 **frame_name:** this is the name given to the shown camera's frame.
 
+
+## Full code for object extraction in camera feeds Using A Custom Model
+
+```python
+import pixellib
+from pixellib.instance import custom_segmentation
+import cv2
+
+capture = cv2.VideoCapture(0)
+segment_frame = custom_segmentation()
+segment_frame.inferConfig(num_classes=2, class_names=['BG', 'butterfly', 'squirrel'])
+segment_frame.load_model("Nature_model_resnet101.h5")
+segment_frame.process_camera(capture, show_bboxes=True, show_frames=True, extract_segmented_objects=True,
+save_extracted_objects=True,frame_name="frame", frames_per_second=5, output_video_name="output.mp4")
+```
 
 
 # Process opencv's frames 
