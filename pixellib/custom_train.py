@@ -245,14 +245,16 @@ class Data(Dataset):
             mask = Image.new('1', (image_info['width'], image_info['height']))
             mask_draw = ImageDraw.ImageDraw(mask, '1')
             for segmentation in annotation['segmentation']:
-                center = np.asarray(segmentation[:2])
-                edge = np.asarray(segmentation[2:])
-                radius = np.sqrt(np.sum((edge - center)**2))
-                corner1 = center - radius
-                corner2 = center + radius
-                xy = [(corner1[0], corner1[1]), (corner2[0], corner2[1])]
-                # mask_draw.polygon(segmentation, fill=1)
-                mask_draw.ellipse(xy, fill=1)
+                if annotation['shape_type'] == 'polygon':
+                    mask_draw.polygon(segmentation, fill=1)
+                elif annotation['shape_type'] == 'circle':
+                    center = np.asarray(segmentation[:2])
+                    edge = np.asarray(segmentation[2:])
+                    radius = np.sqrt(np.sum((edge - center)**2))
+                    corner1 = center - radius
+                    corner2 = center + radius
+                    xy = [(corner1[0], corner1[1]), (corner2[0], corner2[1])]
+                    mask_draw.ellipse(xy, fill=1)
                 bool_array = np.array(mask) > 0
                 instance_masks.append(bool_array)
                 class_ids.append(class_id)
