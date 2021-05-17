@@ -245,9 +245,9 @@ class Data(Dataset):
             mask = Image.new('1', (image_info['width'], image_info['height']))
             mask_draw = ImageDraw.ImageDraw(mask, '1')
             for segmentation in annotation['segmentation']:
-                if annotation['shape_type'] == 'polygon':
+                if len(segmentation) > 2: # polygon
                     mask_draw.polygon(segmentation, fill=1)
-                elif annotation['shape_type'] == 'circle':
+                elif len(segmentation) == 2:
                     center = np.asarray(segmentation[:2])
                     edge = np.asarray(segmentation[2:])
                     radius = np.sqrt(np.sum((edge - center)**2))
