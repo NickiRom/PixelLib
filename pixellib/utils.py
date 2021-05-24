@@ -16,6 +16,7 @@ import tensorflow as tf
 import scipy
 import skimage.color
 import skimage.io
+import skimage.exposure
 import skimage.transform
 import urllib.request
 import shutil
@@ -362,6 +363,7 @@ class Dataset(object):
         image = skimage.io.imread(self.image_info[image_id]['path'])
         # If grayscale. Convert to RGB for consistency.
         if image.ndim != 3:
+            image = skimage.exposure.equalize_hist(image)
             image = skimage.color.gray2rgb(image)
         # If has an alpha channel, remove it for consistency
         if image.shape[-1] == 4:
